@@ -42,17 +42,31 @@
     .status { padding: 0 16px 8px; font-size: 14px; color: #00ff00; }
     .error { color: #ff4444; }
     .no-chats { text-align: center; color: #666; margin-top: 20px; }
+
+    /* TELEGRAM KABI EMAIL KIRISH */
+    .auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
+    .auth-box { width: 100%; max-width: 340px; text-align: center; }
+    .auth-title { font-size: 28px; font-weight: 600; color: #1c1e21; margin-bottom: 8px; }
+    .auth-subtitle { font-size: 15px; color: #606770; margin-bottom: 30px; }
+    .auth-input { width: 100%; padding: 14px 16px; font-size: 17px; border: 1px solid #dddfe2; border-radius: 6px; margin-bottom: 12px; }
+    .auth-input:focus { outline: none; border-color: #1877f2; box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2); }
+    .auth-btn { width: 100%; padding: 14px; background: #1877f2; color: white; border: none; border-radius: 6px; font-size: 17px; font-weight: 600; cursor: pointer; }
+    .auth-btn:hover { background: #166fe5; }
+    .auth-status { margin-top: 16px; font-size: 14px; }
   </style>
 </head>
 <body>
   <div class="app">
-    <!-- EMAIL KIRISH -->
+    <!-- TELEGRAM KABI EMAIL KIRISH -->
     <div id="authStep">
-      <div class="header">OrbicXs 1.0</div>
-      <div class="content" style="padding:24px;">
-        <input id="email" type="email" placeholder="email@gmail.com" />
-        <button onclick="sendMagicLink()">HAVOLA YUBORISH</button>
-        <p id="status" class="status"></p>
+      <div class="auth-container">
+        <div class="auth-box">
+          <div class="auth-title">OrbicXs</div>
+          <div class="auth-subtitle">Email orqali kirish</div>
+          <input id="email" type="email" class="auth-input" placeholder="email@gmail.com" />
+          <button onclick="sendMagicLink()" class="auth-btn">DAVOM ETISH</button>
+          <p id="status" class="auth-status status"></p>
+        </div>
       </div>
     </div>
 
@@ -105,7 +119,7 @@
     let myUsername = '';
     let currentChatWith = null;
     let chatChannel = null;
-    let activeChats = new Set();  // SAQLANGAN CHATLAR
+    let activeChats = new Set();
 
     // HAVOLA YUBORISH
     window.sendMagicLink = async () => {
