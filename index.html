@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OrbicXs 1.0</title>
+  <title>OrbicXs</title>
   <meta name="description" content="Telegram kabi – real-time chat, username, qidiruv" />
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,6 +12,19 @@
     * { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto', sans-serif; }
     body { background: #f0f2f5; display: flex; justify-content: center; min-height: 100vh; }
     .app { width: 100%; max-width: 400px; background: white; height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+    
+    /* TELEGRAM KABI EMAIL KIRISH */
+    .auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
+    .auth-box { width: 100%; max-width: 340px; text-align: center; }
+    .auth-title { font-size: 28px; font-weight: 600; color: #1c1e21; margin-bottom: 8px; }
+    .auth-subtitle { font-size: 15px; color: #606770; margin-bottom: 30px; }
+    .auth-input { width: 100%; padding: 14px 16px; font-size: 17px; border: 1px solid #dddfe2; border-radius: 6px; margin-bottom: 12px; }
+    .auth-input:focus { outline: none; border-color: #1877f2; box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2); }
+    .auth-btn { width: 100%; padding: 14px; background: #1877f2; color: white; border: none; border-radius: 6px; font-size: 17px; font-weight: 600; cursor: pointer; }
+    .auth-btn:hover { background: #166fe5; }
+    .auth-status { margin-top: 16px; font-size: 14px; color: #00ff00; }
+    .auth-status.error { color: #ff4444; }
+
     .header { background: #0088cc; color: white; padding: 16px; font-weight: 500; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
     .header .back { cursor: pointer; font-size: 20px; }
     .search { padding: 12px; }
@@ -30,7 +43,7 @@
     .chat-header .name { font-weight: 500; }
     .chat-header .status { font-size: 12px; }
     .messages { flex: 1; overflow-y: auto; padding: 16px; }
-    .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; margin: 6px 0; word-wrap: break-word; position: relative; }
+    .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; margin: 6px 0; word-wrap: break-word; }
     .sent { background: #00bfff; color: white; margin-left: auto; border-bottom-right-radius: 4px; }
     .received { background: white; color: black; margin-right: auto; border-bottom-left-radius: 4px; }
     .msg-time { font-size: 11px; color: #999; margin-top: 4px; text-align: right; }
@@ -39,25 +52,13 @@
     .input-bar input { flex: 1; padding: 12px 16px; border: none; background: #f0f2f5; border-radius: 25px; font-size: 16px; }
     .input-bar button { width: 44px; height: 44px; background: #0088cc; color: white; border: none; border-radius: 50%; cursor: pointer; }
     .hidden { display: none; }
-    .status { padding: 0 16px 8px; font-size: 14px; color: #00ff00; }
-    .error { color: #ff4444; }
     .no-chats { text-align: center; color: #666; margin-top: 20px; }
-
-    /* TELEGRAM KABI EMAIL KIRISH */
-    .auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
-    .auth-box { width: 100%; max-width: 340px; text-align: center; }
-    .auth-title { font-size: 28px; font-weight: 600; color: #1c1e21; margin-bottom: 8px; }
-    .auth-subtitle { font-size: 15px; color: #606770; margin-bottom: 30px; }
-    .auth-input { width: 100%; padding: 14px 16px; font-size: 17px; border: 1px solid #dddfe2; border-radius: 6px; margin-bottom: 12px; }
-    .auth-input:focus { outline: none; border-color: #1877f2; box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2); }
-    .auth-btn { width: 100%; padding: 14px; background: #1877f2; color: white; border: none; border-radius: 6px; font-size: 17px; font-weight: 600; cursor: pointer; }
-    .auth-btn:hover { background: #166fe5; }
-    .auth-status { margin-top: 16px; font-size: 14px; }
   </style>
 </head>
 <body>
   <div class="app">
-    <!-- TELEGRAM KABI EMAIL KIRISH -->
+
+    <!-- 1. EMAIL KIRISH -->
     <div id="authStep">
       <div class="auth-container">
         <div class="auth-box">
@@ -65,21 +66,21 @@
           <div class="auth-subtitle">Email orqali kirish</div>
           <input id="email" type="email" class="auth-input" placeholder="email@gmail.com" />
           <button onclick="sendMagicLink()" class="auth-btn">DAVOM ETISH</button>
-          <p id="status" class="auth-status status"></p>
+          <p id="status" class="auth-status"></p>
         </div>
       </div>
     </div>
 
-    <!-- USERNAME TANLASH -->
+    <!-- 2. USERNAME TANLASH -->
     <div id="usernameStep" class="hidden">
       <div class="header">Username tanlang</div>
-      <div class="content" style="padding:24px;">
-        <input id="username" type="text" placeholder="@ali_2005" />
-        <button onclick="saveUsername()">SAQLASH</button>
+      <div style="padding:24px;">
+        <input id="username" type="text" class="auth-input" placeholder="@ali_2005" />
+        <button onclick="saveUsername()" class="auth-btn" style="margin-top:12px;">SAQLASH</button>
       </div>
     </div>
 
-    <!-- SAQLANGAN CHATLAR RO'YXATI -->
+    <!-- 3. SAQLANGAN CHATLAR -->
     <div id="usersStep" class="hidden">
       <div class="header">Xabarlar</div>
       <div class="search">
@@ -90,7 +91,7 @@
       </div>
     </div>
 
-    <!-- CHAT EKRANI -->
+    <!-- 4. CHAT EKRANI -->
     <div id="chatStep" class="hidden chat-view">
       <div class="chat-header">
         <div class="back" onclick="backToUsers()">Back</div>
@@ -102,8 +103,6 @@
       </div>
       <div class="messages" id="messages"></div>
       <div class="input-bar">
-        <div class="attach" onclick="document.getElementById('fileInput').click()">Attach</div>
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="uploadImage(event)" />
         <input id="msgInput" placeholder="Xabar..." onkeypress="if(event.key==='Enter') sendMsg()" />
         <button onclick="sendMsg()">Send</button>
       </div>
@@ -121,24 +120,23 @@
     let chatChannel = null;
     let activeChats = new Set();
 
-    // HAVOLA YUBORISH
+    // 1. EMAIL → HAVOLA YUBORISH
     window.sendMagicLink = async () => {
       const email = document.getElementById('email').value.trim();
       if (!email) return status("Email kiriting!", "error");
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: 'https://orbicxs-1-0.vercel.app' }
+        options: { emailRedirectTo: window.location.origin }
       });
 
       if (error) return status(error.message, "error");
       status("Havola yuborildi! Emailni tekshiring.");
     };
 
-    // AVTO KIRISH
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+    // 2. AVTO KIRISH + USERNAME
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
         user = session.user;
         const { data } = await supabase.from('profiles').select('username').eq('id', user.id).single();
         if (data?.username) {
@@ -150,9 +148,9 @@
           document.getElementById('usernameStep').classList.remove('hidden');
         }
       }
-    })();
+    });
 
-    // USERNAME SAQLASH
+    // 3. USERNAME SAQLASH
     window.saveUsername = async () => {
       const username = document.getElementById('username').value.trim().toLowerCase();
       if (!username.startsWith('@')) return alert("@ bilan boshlang!");
@@ -173,7 +171,7 @@
       showUsersList();
     };
 
-    // SAQLANGAN CHATLARNI YUKLASH
+    // 4. SAQLANGAN CHATLAR
     async function loadSavedChats() {
       const { data } = await supabase.from('messages')
         .select('chat_id')
@@ -185,18 +183,12 @@
       });
     }
 
-    // FOYDALANUVCHILAR RO'YXATI – FAQAT SAQLANGANLAR
+    // 5. CHAT RO'YXATI
     async function showUsersList() {
       document.getElementById('usernameStep').classList.add('hidden');
       document.getElementById('usersStep').classList.remove('hidden');
-
       const list = document.getElementById('userList');
-      list.innerHTML = '';
-
-      if (activeChats.size === 0) {
-        list.innerHTML = '<div class="no-chats">Hali hech kim bilan yozishmadingiz</div>';
-        return;
-      }
+      list.innerHTML = activeChats.size === 0 ? '<div class="no-chats">Hali hech kim bilan yozishmadingiz</div>' : '';
 
       for (const username of activeChats) {
         const lastMsg = await getLastMessage(username);
@@ -224,22 +216,16 @@
       return data[0]?.text || '';
     }
 
-    // QIDIRUV – YANGI CHAT BOSHLASH
+    // 6. QIDIRUV
     window.searchUsers = async (query) => {
       if (!query) return showUsersList();
-
       const { data } = await supabase.from('profiles')
         .select('username')
         .ilike('username', `%${query}%`)
         .neq('username', myUsername);
 
       const list = document.getElementById('userList');
-      list.innerHTML = '';
-
-      if (data.length === 0) {
-        list.innerHTML = '<div class="no-chats">Hech narsa topilmadi</div>';
-        return;
-      }
+      list.innerHTML = data.length === 0 ? '<div class="no-chats">Hech narsa topilmadi</div>' : '';
 
       data.forEach(u => {
         const div = document.createElement('div');
@@ -253,7 +239,7 @@
       });
     };
 
-    // CHAT OCHISH – REAL-TIME!
+    // 7. CHAT OCHISH + REAL-TIME
     function openChat(username) {
       currentChatWith = username;
       activeChats.add(username);
@@ -261,61 +247,40 @@
       document.getElementById('chatStep').classList.remove('hidden');
       document.getElementById('chatWithName').innerText = username;
       document.getElementById('messages').innerHTML = '';
-
       if (chatChannel) supabase.removeChannel(chatChannel);
       loadMessages();
       subscribeToChat();
     }
 
-    // REAL-TIME ULASH
     function subscribeToChat() {
-      if (!currentChatWith) return;
       const chatId = [myUsername, currentChatWith].sort().join('_');
-
-      chatChannel = supabase
-        .channel(`chat:${chatId}`)
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `chat_id=eq.${chatId}`
-        }, payload => {
+      chatChannel = supabase.channel(`chat:${chatId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, payload => {
           addMessage(payload.new);
         })
         .subscribe();
     }
 
-    // ORQAGA
     window.backToUsers = () => {
       document.getElementById('chatStep').classList.add('hidden');
       document.getElementById('usersStep').classList.remove('hidden');
       currentChatWith = null;
-      if (chatChannel) {
-        supabase.removeChannel(chatChannel);
-        chatChannel = null;
-      }
+      if (chatChannel) { supabase.removeChannel(chatChannel); chatChannel = null; }
       showUsersList();
     };
 
-    // XABAR YUBORISH
+    // 8. XABAR YUBORISH
     window.sendMsg = async () => {
       const msg = document.getElementById('msgInput').value.trim();
       if (!msg || !currentChatWith) return;
-
       const chatId = [myUsername, currentChatWith].sort().join('_');
-      await supabase.from('messages').insert({
-        chat_id: chatId,
-        sender: myUsername,
-        text: msg
-      });
+      await supabase.from('messages').insert({ chat_id: chatId, sender: myUsername, text: msg });
       document.getElementById('msgInput').value = '';
     };
 
-    // XABARLAR YUKLASH
+    // 9. XABARLAR YUKLASH
     function loadMessages() {
-      if (!currentChatWith) return;
       const chatId = [myUsername, currentChatWith].sort().join('_');
-
       supabase.from('messages')
         .select()
         .eq('chat_id', chatId)
@@ -323,26 +288,26 @@
         .then(({ data }) => data.forEach(addMessage));
     }
 
-    // XABAR QO'SHISH
     function addMessage(m) {
       const isSent = m.sender === myUsername;
       const div = document.createElement('div');
       div.className = `msg ${isSent ? 'sent' : 'received'}`;
-      div.innerHTML = `
-        ${m.text}
-        <div class="msg-time">${new Date(m.created_at).toLocaleTimeString('uz', {hour: '2-digit', minute: '2-digit'})}</div>
-      `;
+      div.innerHTML = `${m.text}<div class="msg-time">${new Date(m.created_at).toLocaleTimeString('uz', {hour: '2-digit', minute: '2-digit'})}</div>`;
       document.getElementById('messages').appendChild(div);
       div.scrollIntoView({ behavior: 'smooth' });
     }
 
-    window.logout = () => supabase.auth.signOut().then(() => location.reload());
-
     function status(text, type = "status") {
       const el = document.getElementById('status');
       el.innerText = text;
-      el.className = type;
+      el.className = `auth-status ${type}`;
     }
+
+    // Dastlabki sessiya
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) supabase.auth.onAuthStateChange()();
+    })();
   </script>
 </body>
 </html>
