@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>OrbicXs</title>
-  <meta name="description" content="Telegram kabi – real-time chat, username, qidiruv" />
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -12,8 +11,8 @@
     * { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto', sans-serif; }
     body { background: #f0f2f5; display: flex; justify-content: center; min-height: 100vh; }
     .app { width: 100%; max-width: 400px; background: white; height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-    
-    /* TELEGRAM KABI EMAIL KIRISH */
+
+    /* EMAIL KIRISH */
     .auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
     .auth-box { width: 100%; max-width: 340px; text-align: center; }
     .auth-title { font-size: 28px; font-weight: 600; color: #1c1e21; margin-bottom: 8px; }
@@ -48,7 +47,6 @@
     .received { background: white; color: black; margin-right: auto; border-bottom-left-radius: 4px; }
     .msg-time { font-size: 11px; color: #999; margin-top: 4px; text-align: right; }
     .input-bar { display: flex; padding: 8px; background: white; border-top: 1px solid #eee; }
-    .input-bar .attach { width: 44px; height: 44px; background: #f0f2f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px; }
     .input-bar input { flex: 1; padding: 12px 16px; border: none; background: #f0f2f5; border-radius: 25px; font-size: 16px; }
     .input-bar button { width: 44px; height: 44px; background: #0088cc; color: white; border: none; border-radius: 50%; cursor: pointer; }
     .hidden { display: none; }
@@ -80,14 +78,14 @@
       </div>
     </div>
 
-    <!-- 3. SAQLANGAN CHATLAR -->
+    <!-- 3. CHAT RO'YXATI -->
     <div id="usersStep" class="hidden">
       <div class="header">Xabarlar</div>
       <div class="search">
         <input type="text" placeholder="Qidiruv..." oninput="searchUsers(this.value)" />
       </div>
       <div class="user-list" id="userList">
-        <div class="no-chats">Hali hech kim bilan yozishmadingiz</div>
+        <div class="no-chats">Yuklanmoqda...</div>
       </div>
     </div>
 
@@ -120,25 +118,24 @@
     let chatChannel = null;
     let activeChats = new Set();
 
-    // 1. EMAIL → HAVOLA YUBORISH
+    // 1. EMAIL → HAVOLA
     window.sendMagicLink = async () => {
       const email = document.getElementById('email').value.trim();
       if (!email) return status("Email kiriting!", "error");
-
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.origin }
+        options: { emailRedirectTo: window.location.href }
       });
-
       if (error) return status(error.message, "error");
       status("Havola yuborildi! Emailni tekshiring.");
     };
 
-    // 2. AVTO KIRISH + USERNAME
+    // 2. AVTO KIRISH
     supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         user = session.user;
-        const { data } = await supabase.from('profiles').select('username').eq('id', user.id).single();
+        const { data, error } = await supabase.from('profiles').select('username').eq('id', user.id).single();
+        if (error && error.code !== 'PGRST116') return console.error(error);
         if (data?.username) {
           myUsername = data.username;
           await loadSavedChats();
@@ -177,6 +174,7 @@
         .select('chat_id')
         .or(`sender.eq.${myUsername},receiver.eq.${myUsername}`);
 
+      activeChats.clear();
       data.forEach(m => {
         const other = m.chat_id.split('_').find(u => u !== myUsername);
         if (other) activeChats.add(other);
@@ -188,8 +186,14 @@
       document.getElementById('usernameStep').classList.add('hidden');
       document.getElementById('usersStep').classList.remove('hidden');
       const list = document.getElementById('userList');
-      list.innerHTML = activeChats.size === 0 ? '<div class="no-chats">Hali hech kim bilan yozishmadingiz</div>' : '';
+      list.innerHTML = '<div class="no-chats">Yuklanmoqda...</div>';
 
+      if (activeChats.size === 0) {
+        list.innerHTML = '<div class="no-chats">Hali hech kim bilan yozishmadingiz</div>';
+        return;
+      }
+
+      list.innerHTML = '';
       for (const username of activeChats) {
         const lastMsg = await getLastMessage(username);
         const div = document.createElement('div');
@@ -239,10 +243,9 @@
       });
     };
 
-    // 7. CHAT OCHISH + REAL-TIME
+    // 7. CHAT OCHISH
     function openChat(username) {
       currentChatWith = username;
-      activeChats.add(username);
       document.getElementById('usersStep').classList.add('hidden');
       document.getElementById('chatStep').classList.remove('hidden');
       document.getElementById('chatWithName').innerText = username;
@@ -274,7 +277,12 @@
       const msg = document.getElementById('msgInput').value.trim();
       if (!msg || !currentChatWith) return;
       const chatId = [myUsername, currentChatWith].sort().join('_');
-      await supabase.from('messages').insert({ chat_id: chatId, sender: myUsername, text: msg });
+      await supabase.from('messages').insert({
+        chat_id: chatId,
+        sender: myUsername,
+        receiver: currentChatWith,
+        text: msg
+      });
       document.getElementById('msgInput').value = '';
     };
 
@@ -306,7 +314,15 @@
     // Dastlabki sessiya
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) supabase.auth.onAuthStateChange()();
+      if (session) {
+        user = session.user;
+        const { data } = await supabase.from('profiles').select('username').eq('id', user.id).single();
+        if (data?.username) {
+          myUsername = data.username;
+          await loadSavedChats();
+          showUsersList();
+        }
+      }
     })();
   </script>
 </body>
